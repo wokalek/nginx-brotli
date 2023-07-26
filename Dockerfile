@@ -1,25 +1,36 @@
 ARG ALPINE_VERSION=3.18.2
 ARG NGINX_VERSION=1.25.1
 ARG PCRE2_VERSION=10.42
+ARG OPENSSL_VERSION=3.1.1
 ARG BROTLI_COMMIT=6e975bcb015f62e1f303054897783355e2a877dc
 
 FROM alpine:$ALPINE_VERSION AS build
 
 ARG NGINX_VERSION
 ARG PCRE2_VERSION
+ARG OPENSSL_VERSION
 ARG BROTLI_COMMIT
 
 WORKDIR /src
 
 RUN \
   # Dependencies
-  apk add --no-cache git make gcc openssl-dev zlib-dev linux-headers g++ && \
+  apk add --no-cache git make gcc openssl-dev zlib-dev linux-headers g++ perl-dev && \
   # Brotli
   mkdir ngx_brotli && \
   cd ngx_brotli && \
   git init && \
   git remote add origin https://github.com/google/ngx_brotli.git && \
   git fetch --depth 1 origin $BROTLI_COMMIT && \
+  git checkout FETCH_HEAD && \
+  git submodule update --init --recursive --depth 1 && \
+  cd .. && \
+  # OpenSSL
+  mkdir openssl && \
+  cd openssl && \
+  git init && \
+  git remote add origin https://github.com/quictls/openssl.git && \
+  git fetch --depth 1 origin openssl-$OPENSSL_VERSION && \
   git checkout FETCH_HEAD && \
   git submodule update --init --recursive --depth 1 && \
   cd .. && \
@@ -72,7 +83,9 @@ RUN \
   --with-stream_ssl_preread_module \
   --with-pcre=/src/pcre2-$PCRE2_VERSION \
   --with-pcre-jit \
-  --add-module=/src/ngx_brotli && \
+  --add-module=/src/ngx_brotli \
+  --with-openssl="/src/openssl" \
+  --with-openssl-opt="no-ssl2 no-ssl3 no-weak-ssl-ciphers" && \
   make && \
   make install
 
