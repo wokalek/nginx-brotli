@@ -23,3 +23,7 @@ And of course this dockerfile can be perfect for your nginx build with your modu
 You can use this image just like the [official nginx](https://hub.docker.com/_/nginx).
 
 Check out the available tags.
+
+## HTTP3/QUIC
+
+If you are looking for HTTP3/QUIC support, there is an [http3/quic build using OpenSSL](https://github.com/wokalek/nginx-brotli/tree/http3).
