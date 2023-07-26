@@ -5,7 +5,8 @@ This is a super simple and easy to read nginx docker alpine-based image.
 ## What's inside
 
 - Only default [nginx modules](https://nginx.org/en/docs/)
-- [`ngx_brotli`](https://github.com/google/ngx_brotli) - brotli algorithm compression
+- [`ngx_brotli`](https://github.com/google/ngx_brotli) — brotli algorithm compression
+- [`OpenSSL`](https://github.com/quictls/openssl) — HTTP3/QUIC support
 - Ports `80` and `443` are exposed by default
 
 ## Why?
@@ -23,3 +24,7 @@ And of course this dockerfile can be perfect for your nginx build with your modu
 You can use this image just like the [official nginx](https://hub.docker.com/_/nginx).
 
 Check out the available tags.
+
+## HTTP3/QUIC
+
+If you are looking for HTTP3/QUIC support, there is an [http3/quic build using OpenSSL](https://github.com/wokalek/nginx-brotli/tree/http3).
