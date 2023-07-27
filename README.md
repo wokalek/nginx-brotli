@@ -21,6 +21,18 @@ And of course this dockerfile can be perfect for your nginx build with your modu
 
 ## How to use this image
 
+Pull image from Docker Hub:
+
+```bash
+docker pull wokalek/nginx-brotli
+```
+
+or from GitHub Packages:
+
+```bash
+docker pull ghcr.io/wokalek/nginx-brotli
+```
+
 You can use this image just like the [official nginx](https://hub.docker.com/_/nginx).
 
 Check out the available tags.
