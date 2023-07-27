@@ -6,6 +6,7 @@ This is a super simple and easy to read nginx docker alpine-based image.
 
 - Only default [nginx modules](https://nginx.org/en/docs/)
 - [`ngx_brotli`](https://github.com/google/ngx_brotli) — brotli algorithm compression
+- `git` apk installed
 - Ports `80` and `443` are exposed by default
 
 ## Why?
