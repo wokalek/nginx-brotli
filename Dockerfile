@@ -95,12 +95,13 @@ COPY --from=build /usr/sbin/nginx /usr/sbin
 COPY --from=build /etc/nginx /etc/nginx
 
 RUN \
-  addgroup -S nginx \
-  && adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
-  && adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G users -u 1000 user \
-  && mkdir /var/log/nginx && touch /var/log/nginx/access.log /var/log/nginx/error.log \
-  && ln -sf /dev/stdout /var/log/nginx/access.log \
-  && ln -sf /dev/stderr /var/log/nginx/error.log
+  addgroup -S nginx && \
+  adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx && \
+  adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G users -u 1000 user && \
+  mkdir /var/log/nginx && \
+  touch /var/log/nginx/access.log /var/log/nginx/error.log && \
+  ln -sf /dev/stdout /var/log/nginx/access.log && \
+  ln -sf /dev/stderr /var/log/nginx/error.log
 
 EXPOSE 80 443
 
