@@ -13,7 +13,7 @@ This is a super simple and easy to read nginx docker alpine-based image.
 
 This is the smallest and most up-to-date nginx-brotli image you can find.
 
-The most popular `fholzer/nginx-brotli` with 1 million pools is 13.96 MB, `wokalek/nginx-brotli` is **9.36 MB** (compressed size, compare 1.25.1 tags).
+The most popular `fholzer/nginx-brotli` with 1 million pools is 13.96 MB, `wokalek/nginx-brotli` is **5.28 MB** (compare fholzer/nginx-brotli:1.24.0 and wokalek/nginx-brotli:1.27.1).
 
 Alpine! Everyone loves alpine. Other images you may find use different base images.
 
