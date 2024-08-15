@@ -1,34 +1,52 @@
-ARG ALPINE_VERSION=3.18.3
-ARG NGINX_VERSION=1.25.2
-ARG PCRE2_VERSION=10.42
-ARG BROTLI_COMMIT=6e975bcb015f62e1f303054897783355e2a877dc
+ARG ALPINE_VERSION=3.20.2
+ARG WORKDIR=/src
 
-FROM alpine:$ALPINE_VERSION AS build
+ARG NGINX_VERSION=1.27.1
+ARG PCRE2_VERSION=10.44
+ARG BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
+
+FROM alpine:${ALPINE_VERSION} AS base
+
+ARG WORKDIR
+
+WORKDIR ${WORKDIR}
+
+FROM base AS build
+
+ARG WORKDIR
 
 ARG NGINX_VERSION
 ARG PCRE2_VERSION
 ARG BROTLI_COMMIT
 
-WORKDIR /src
-
 RUN \
-  # Dependencies
-  apk add --no-cache git make gcc openssl-dev zlib-dev linux-headers g++ && \
+  apk add --no-cache git make gcc openssl-dev zlib-dev linux-headers g++ cmake && \
+  # Nginx
+  wget -O - https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz | tar xz && \
+  # PCRE2
+  wget -O - https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${PCRE2_VERSION}/pcre2-${PCRE2_VERSION}.tar.gz | tar xz && \
   # Brotli
   mkdir ngx_brotli && \
   cd ngx_brotli && \
   git init && \
   git remote add origin https://github.com/google/ngx_brotli.git && \
-  git fetch --depth 1 origin $BROTLI_COMMIT && \
+  git fetch --depth 1 origin ${BROTLI_COMMIT} && \
   git checkout FETCH_HEAD && \
   git submodule update --init --recursive --depth 1 && \
-  cd .. && \
-  # PCRE2
-  wget -O - https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.tar.gz | tar xz && \
-  # Nginx
-  wget -O - https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz | tar xz && \
-  # Nginx build
-  cd nginx-$NGINX_VERSION && \
+  cd deps/brotli && \
+  mkdir out && cd out && \
+  cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DCMAKE_C_FLAGS="-Ofast -m64 -march=native -mtune=native -flto -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections" \
+    -DCMAKE_CXX_FLAGS="-Ofast -m64 -march=native -mtune=native -flto -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections" \
+    -DCMAKE_INSTALL_PREFIX=./installed .. && \
+  cmake --build . --config Release --target brotlienc && \
+  cd ${WORKDIR} && \
+  # Brotli flags
+  export CFLAGS="-m64 -march=native -mtune=native -Ofast -flto -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections" && \
+  export LDFLAGS="-m64 -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections" && \
+  cd nginx-${NGINX_VERSION} && \
   ./configure \
   --prefix=/etc/nginx \
   --sbin-path=/usr/sbin/nginx \
@@ -63,20 +81,19 @@ RUN \
   --with-http_stub_status_module \
   --with-http_sub_module \
   --with-http_v2_module \
-  --with-http_v3_module \
   --with-mail \
   --with-mail_ssl_module \
   --with-stream \
   --with-stream_realip_module \
   --with-stream_ssl_module \
   --with-stream_ssl_preread_module \
-  --with-pcre=/src/pcre2-$PCRE2_VERSION \
+  --with-pcre=${WORKDIR}/pcre2-$PCRE2_VERSION \
   --with-pcre-jit \
-  --add-module=/src/ngx_brotli && \
+  --add-module=${WORKDIR}/ngx_brotli && \
   make && \
   make install
 
-FROM alpine:$ALPINE_VERSION
+FROM base AS entry
 
 COPY --from=build /usr/sbin/nginx /usr/sbin
 COPY --from=build /etc/nginx /etc/nginx
